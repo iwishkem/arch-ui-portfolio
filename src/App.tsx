@@ -1,38 +1,34 @@
-import { useState, useEffect } from 'react';
-import { Rnd } from 'react-rnd'; // İkonları sürüklemek için Rnd'yi import ettik
+import { useState } from 'react';
+import { Rnd } from 'react-rnd'; 
 import TopPanel from './components/TopPanel';
 import Window from './components/Window';
 import TerminalApp from './components/TerminalApp';
 import FileExplorer from './components/FileExplorer';
-import { Terminal, User, Folder as FolderIcon } from 'lucide-react'; // FolderIcon'u lucide'den almayı unutma
+import { Terminal, User, Folder as FolderIcon } from 'lucide-react';
 
 export default function App() {
   const [windows, setWindows] = useState<{ id: string; title: string; content: React.ReactNode }[]>([]);
   const [focusedId, setFocusedId] = useState<string | null>(null);
 
-  // --- İKON KONUMLARINI LOCALSTORAGE İLE YÖNETME ---
   const [iconPositions, setIconPositions] = useState<{ [key: string]: { x: number, y: number } }>(() => {
     try {
-      // Tarayıcı hafızasında kayıtlı konum var mı diye bakıyoruz
       const saved = localStorage.getItem('archIconPositions');
       if (saved) return JSON.parse(saved);
     } catch (e) {
-      console.error("Konumlar yüklenemedi.");
+      console.error("Konumlar yüklenemedi.", e);
     }
-    // Kayıt yoksa varsayılan başlangıç konumları
     return {
       terminal: { x: 20, y: 20 },
-      about: { x: 20, y: 120 }
+      about: { x: 20, y: 120 },
+      files: { x: 20, y: 220 }
     };
   });
 
-  // İkon sürüklendikten sonra yeni konumu hafızaya kaydetme fonksiyonu
   const updateIconPosition = (id: string, x: number, y: number) => {
     const newPositions = { ...iconPositions, [id]: { x, y } };
     setIconPositions(newPositions);
-    localStorage.setItem('archIconPositions', JSON.stringify(newPositions)); // Tarayıcıya yaz
+    localStorage.setItem('archIconPositions', JSON.stringify(newPositions));
   };
-  // --------------------------------------------------
 
   const openTerminal = () => {
     const newId = `term-${Date.now()}`;
@@ -62,55 +58,45 @@ export default function App() {
       
       <TopPanel openTerminal={openTerminal} openSingleWindow={openSingleWindow} />
       
-      {/* Masaüstü Alanı (İkonların içinde serbestçe dolaşacağı alan) */}
       <div className="flex-1 relative w-full h-full">
         
-        {/* Terminal İkonu (Sürüklenebilir) */}
+        {/* Terminal İkonu */}
         <Rnd
           default={{ x: iconPositions['terminal'].x, y: iconPositions['terminal'].y, width: 96, height: 96 }}
-          enableResizing={false} // İkonların boyutu değiştirilemesin
-          bounds="parent" // Masaüstü dışına çıkamasınlar
-          onDragStop={(e, d) => updateIconPosition('terminal', d.x, d.y)} // Bırakınca kaydet
+          enableResizing={false}
+          bounds="parent"
+          onDragStop={(_e, d) => updateIconPosition('terminal', d.x, d.y)}
           style={{ zIndex: 1 }}
         >
-          <div 
-            className="flex flex-col items-center justify-center gap-1 w-full h-full cursor-pointer hover:bg-white/10 rounded transition-colors"
-            onDoubleClick={openTerminal} // Gerçek PC mantığı: Çift tıklayınca açılır
-          >
+          <div className="flex flex-col items-center justify-center gap-1 w-full h-full cursor-pointer hover:bg-white/10 rounded transition-colors" onDoubleClick={openTerminal}>
             <Terminal size={40} className="text-[#89b4fa]" />
             <span className="text-xs text-center drop-shadow-md font-medium select-none">Terminal</span>
           </div>
         </Rnd>
 
-        {/* Dosya Yöneticisi İkonu */}
+        {/* Dosyalar İkonu */}
         <Rnd
-          default={{ x: 20, y: 220, width: 96, height: 96 }} // Hakkımda ikonunun altına denk gelecek
+          default={{ x: iconPositions['files'].x, y: iconPositions['files'].y, width: 96, height: 96 }}
           enableResizing={false}
           bounds="parent"
-          onDragStop={(e, d) => updateIconPosition('files', d.x, d.y)}
+          onDragStop={(_e, d) => updateIconPosition('files', d.x, d.y)}
           style={{ zIndex: 1 }}
         >
-          <div 
-            className="flex flex-col items-center justify-center gap-1 w-full h-full cursor-pointer hover:bg-white/10 rounded transition-colors"
-            onDoubleClick={() => openSingleWindow('files', 'Dosya Yöneticisi', <FileExplorer openWindow={openSingleWindow} />)}
-          >
+          <div className="flex flex-col items-center justify-center gap-1 w-full h-full cursor-pointer hover:bg-white/10 rounded transition-colors" onDoubleClick={() => openSingleWindow('files', 'Dosya Yöneticisi', <FileExplorer openWindow={openSingleWindow} />)}>
             <FolderIcon size={40} className="text-[#89b4fa]" />
             <span className="text-xs text-center drop-shadow-md font-medium select-none">Dosyalar</span>
           </div>
         </Rnd>
 
-        {/* Hakkımda İkonu (Sürüklenebilir) */}
+        {/* Hakkımda İkonu */}
         <Rnd
           default={{ x: iconPositions['about'].x, y: iconPositions['about'].y, width: 96, height: 96 }}
           enableResizing={false}
           bounds="parent"
-          onDragStop={(e, d) => updateIconPosition('about', d.x, d.y)}
+          onDragStop={(_e, d) => updateIconPosition('about', d.x, d.y)}
           style={{ zIndex: 1 }}
         >
-          <div 
-            className="flex flex-col items-center justify-center gap-1 w-full h-full cursor-pointer hover:bg-white/10 rounded transition-colors"
-            onDoubleClick={() => openSingleWindow('about', 'Hakkımda', <div className="p-4 text-gray-300">Kem. Öğrenci, geliştirici ve Android modlayıcısı.</div>)}
-          >
+          <div className="flex flex-col items-center justify-center gap-1 w-full h-full cursor-pointer hover:bg-white/10 rounded transition-colors" onDoubleClick={() => openSingleWindow('about', 'Hakkımda', <div className="p-4 text-gray-300">Kem. Öğrenci, geliştirici ve Android modlayıcısı.</div>)}>
             <User size={40} className="text-[#f9e2af]" />
             <span className="text-xs text-center drop-shadow-md font-medium select-none">Hakkımda</span>
           </div>
@@ -119,14 +105,7 @@ export default function App() {
       </div>
 
       {windows.map(win => (
-        <Window 
-          key={win.id} 
-          id={win.id} 
-          title={win.title} 
-          onClose={closeWindow}
-          onFocus={() => focusWindow(win.id)}
-          isFocused={focusedId === win.id}
-        >
+        <Window key={win.id} id={win.id} title={win.title} onClose={closeWindow} onFocus={() => focusWindow(win.id)} isFocused={focusedId === win.id}>
           {win.content}
         </Window>
       ))}
