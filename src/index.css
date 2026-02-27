@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  overflow: hidden; /* Masaüstünün kendisinin kaymasını engeller */
+}
+
+/* --- ÖZEL LİNUX TARZI KAYDIRMA ÇUBUĞU (SCROLLBAR) --- */
+::-webkit-scrollbar {
+  width: 8px;  /* Çubuğun inceliği */
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #181825; /* Arka plan (pencere başlıklarıyla aynı renk) */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #313244; /* Kaydırdığımız tutamaç kısmı */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #89b4fa; /* Üzerine gelince Arch mavisi olsun! */
+}
