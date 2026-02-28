@@ -1,326 +1,211 @@
 import { useState, useRef, useEffect } from 'react';
 
-// --- PEACLOCK ASCII SAAT BİLEŞENİ ---
-const ASCII_DIGITS: Record<string, string[]> = {
-  '0': ["███", "█ █", "█ █", "█ █", "███"],
-  '1': [" ██", "  █", "  █", "  █", "███"],
-  '2': ["███", "  █", "███", "█  ", "███"],
-  '3': ["███", "  █", "███", "  █", "███"],
-  '4': ["█ █", "█ █", "███", "  █", "  █"],
-  '5': ["███", "█  ", "███", "  █", "███"],
-  '6': ["███", "█  ", "███", "█ █", "███"],
-  '7': ["███", "  █", "  █", "  █", "  █"],
-  '8': ["███", "█ █", "███", "█ █", "███"],
-  '9': ["███", "█ █", "███", "  █", "███"],
-  ':': ["   ", " █ ", "   ", " █ ", "   "],
-};
+interface TerminalAppProps {
+  onExit?: () => void;
+}
+
+// --- ANIMATION COMPONENTS ---
+function MatrixProcess() {
+  const [lines, setLines] = useState<string[]>([]);
+  useEffect(() => {
+    const t = setInterval(() => {
+      setLines(prev => {
+        const newLine = Array.from({length: 40}, () => String.fromCharCode(0x30A0 + Math.random() * 96)).join(' ');
+        return [...prev, newLine].slice(-20);
+      });
+    }, 80);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div className="font-mono text-[#a6e3a1] bg-black/90 p-4 flex-1 flex flex-col justify-end overflow-hidden h-full">
+      {lines.map((l, i) => <div key={i} className="opacity-80">{l}</div>)}
+      <div className="mt-2 text-green-900 text-[10px]">Matrix Active... Press Ctrl+C to stop</div>
+    </div>
+  );
+}
 
 function PeaclockProcess() {
-  const [timeStr, setTimeStr] = useState("");
-
+  const [time, setTime] = useState("");
   useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      setTimeStr(now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-    };
-    updateTime();
-    const timer = setInterval(updateTime, 1000);
-    return () => clearInterval(timer);
+    const t = setInterval(() => setTime(new Date().toLocaleTimeString('en-US')), 1000);
+    return () => clearInterval(t);
   }, []);
-
-  if (!timeStr) return null;
-
-  const lines = ["", "", "", "", ""];
-  for (const char of timeStr) {
-    const digitArt = ASCII_DIGITS[char] || ASCII_DIGITS[':'];
-    for (let i = 0; i < 5; i++) {
-      lines[i] += digitArt[i] + "  ";
-    }
-  }
-
   return (
-    <div className="flex-1 flex flex-col items-center justify-center text-[#89b4fa] font-mono leading-none tracking-widest mt-10">
-      {lines.map((line, idx) => (
-        <pre key={idx} className="drop-shadow-[0_0_8px_rgba(137,180,250,0.5)]">{line}</pre>
-      ))}
-      <div className="mt-8 text-gray-500 text-xs animate-pulse">Press Ctrl+C to exit</div>
+    <div className="flex-1 flex flex-col items-center justify-center text-[#89b4fa] font-mono h-full bg-[#1e1e2e]">
+      <pre className="text-6xl font-black drop-shadow-[0_0_15px_rgba(137,180,250,0.5)] animate-pulse">{time}</pre>
+      <div className="mt-8 text-gray-500 text-xs italic">Digital Clock Active... Press Ctrl+C to exit</div>
     </div>
   );
 }
 
-// --- PIPES.SH ANİMASYON BİLEŞENİ (GELİŞMİŞ SÜRÜM) ---
-function PipesProcess() {
-  const rows = 20;
-  const cols = 60;
-  
-  const [grid, setGrid] = useState<{char: string, color: string}[][]>(() =>
-    Array.from({ length: rows }, () => 
-      Array.from({ length: cols }, () => ({ char: ' ', color: '' }))
-    )
-  );
-  
-  const gridRef = useRef(
-    Array.from({ length: rows }, () => Array.from({ length: cols }, () => ({ char: ' ', color: '' })))
-  );
-
-  useEffect(() => {
-    const colors = ['text-green-400', 'text-blue-400', 'text-red-400', 'text-yellow-400', 'text-[#cba6f7]', 'text-cyan-400'];
-    
-    const pipes = Array.from({ length: 5 }, () => ({
-      x: Math.floor(Math.random() * cols),
-      y: Math.floor(Math.random() * rows),
-      dir: Math.floor(Math.random() * 4),
-      color: colors[Math.floor(Math.random() * colors.length)]
-    }));
-
-    const interval = setInterval(() => {
-      const newGrid = [...gridRef.current.map(row => [...row])];
-
-      pipes.forEach(pipe => {
-        let newDir = pipe.dir;
-        
-        if (Math.random() < 0.2) {
-          const possibleTurns = [(pipe.dir + 1) % 4, (pipe.dir + 3) % 4];
-          newDir = possibleTurns[Math.floor(Math.random() * possibleTurns.length)];
-        }
-
-        let char = '';
-        if (pipe.dir === newDir) {
-          char = (pipe.dir === 0 || pipe.dir === 2) ? '┃' : '━';
-        } else {
-          if (pipe.dir === 0 && newDir === 1) char = '┏';
-          else if (pipe.dir === 0 && newDir === 3) char = '┓';
-          else if (pipe.dir === 2 && newDir === 1) char = '┗';
-          else if (pipe.dir === 2 && newDir === 3) char = '┛';
-          else if (pipe.dir === 1 && newDir === 0) char = '┛';
-          else if (pipe.dir === 1 && newDir === 2) char = '┓';
-          else if (pipe.dir === 3 && newDir === 0) char = '┗';
-          else if (pipe.dir === 3 && newDir === 2) char = '┏';
-        }
-
-        newGrid[pipe.y][pipe.x] = { char, color: pipe.color };
-
-        pipe.dir = newDir;
-        if (pipe.dir === 0) pipe.y--;
-        else if (pipe.dir === 1) pipe.x++;
-        else if (pipe.dir === 2) pipe.y++;
-        else if (pipe.dir === 3) pipe.x--;
-
-        pipe.x = (pipe.x + cols) % cols;
-        pipe.y = (pipe.y + rows) % rows;
-      });
-
-      gridRef.current = newGrid;
-      setGrid(newGrid);
-    }, 30);
-
-    return () => clearInterval(interval);
-  }, []);
-
+function JumpscareProcess() {
   return (
-    <div className="font-mono leading-none select-none p-4 whitespace-pre overflow-hidden flex-1 text-sm">
-      {grid.map((row, rIdx) => (
-        <div key={rIdx} className="h-[14px]">
-          {row.map((cell, cIdx) => (
-            <span key={cIdx} className={cell.color}>{cell.char}</span>
-          ))}
-        </div>
-      ))}
-      <div className="mt-6 text-gray-500 text-xs animate-pulse">Press Ctrl+C to exit</div>
+    <div className="flex flex-col items-center justify-center bg-red-600 w-full h-full animate-pulse overflow-hidden">
+      <h1 className="text-black font-black text-7xl italic shadow-2xl">KERNEL PANIC!</h1>
+      <p className="text-white font-bold mt-4 bg-black px-6 py-2 border-2 border-white">FATAL_ERROR: SYSTEM_COMPROMISED</p>
+      <div className="mt-8 text-black/50 text-xs font-mono uppercase tracking-widest">Press Ctrl+C to force reboot</div>
     </div>
   );
 }
 
-// --- ANA TERMİNAL BİLEŞENİ ---
-export default function TerminalApp() {
+// --- VIRTUAL FILE SYSTEM DATA ---
+const fileSystem: Record<string, string[]> = {
+  '~': ['projects', 'education', 'README.md'],
+  '~/projects': ['XBash.sh', 'ytxtract.py', 'MusicController.dart'],
+  '~/education': ['Literature_Notes.txt', 'Nursing_Practices.txt']
+};
+
+const fileContents: Record<string, string> = {
+  '~/README.md': 'Kem: Student in Turkey. Specializing in Android modding (S21FE/LineageOS) and Flutter development.',
+  '~/projects/XBash.sh': '#!/bin/bash\n# XBash: A ShareX-like image uploader written in bash.',
+  '~/projects/ytxtract.py': 'import yt_dlp\n# ytxtract: YouTube video/audio downloader toolkit written in Python.',
+  '~/projects/MusicController.dart': 'import "package:flutter/material.dart";\n// MusicController: Flutter project for managing media playback.',
+  '~/education/Literature_Notes.txt': 'Notes on Literature courses in Turkey.',
+  '~/education/Nursing_Practices.txt': 'Professional applications for Nursing Assistance courses.'
+};
+
+export default function TerminalApp({ onExit }: TerminalAppProps) {
   const [history, setHistory] = useState<React.ReactNode[]>([
-    <div key="init" className="text-gray-400 mb-2">
-      Welcome to Arch UI Portfolio. Type <span className="text-[#cba6f7]">help</span> to see available commands.
-    </div>
+    <div key="welcome" className="text-gray-400 mb-2 italic underline decoration-[#cba6f7]">Welcome to KemOS v3.0 (Arch-based)</div>,
+    <div key="hint" className="mb-4 text-xs">Type <span className="text-[#cba6f7] font-bold">help</span> to view all available commands.</div>
   ]);
-  
   const [input, setInput] = useState('');
-  const [activeProcess, setActiveProcess] = useState<'peaclock' | 'pipes' | null>(null);
-  
+  const [cwd, setCwd] = useState('~');
   const [cmdHistory, setCmdHistory] = useState<string[]>([]);
-  const [historyIndex, setHistoryIndex] = useState<number>(-1);
+  const [activeProcess, setActiveProcess] = useState<string | null>(null);
   
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (!activeProcess) {
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [history, activeProcess]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [history]);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key.toLowerCase() === 'c') {
-        if (activeProcess) {
-          setActiveProcess(null);
-          setHistory(prev => [...prev, <div key={prev.length} className="text-white">^C</div>]);
-        } else {
-          setHistory(prev => [...prev, <div key={prev.length}><span className="text-[#a6e3a1]">kem@arch</span><span className="text-white">:$</span> {input}<span className="text-white">^C</span></div>]);
-          setInput('');
-        }
+    const handleCtrlC = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key.toLowerCase() === 'c' && activeProcess) {
+        setActiveProcess(null);
+        setHistory(prev => [...prev, <div className="text-[#f38ba8] mt-2">^C (Process Terminated)</div>]);
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeProcess, input]);
+    window.addEventListener('keydown', handleCtrlC);
+    return () => window.removeEventListener('keydown', handleCtrlC);
+  }, [activeProcess]);
 
-  const handleCommand = (cmd: string) => {
-    const trimmedCmd = cmd.trim();
-    
-    if (trimmedCmd) {
-      setCmdHistory(prev => [...prev, trimmedCmd]);
-    }
-    setHistoryIndex(-1);
-
-    if (!trimmedCmd) {
-      setHistory(prev => [...prev, <div key={prev.length}><span className="text-[#a6e3a1]">kem@arch</span><span className="text-white">:$</span></div>]);
+  const handleCommand = (e: React.FormEvent) => {
+    e.preventDefault();
+    const fullCmd = input.trim();
+    if (!fullCmd) {
+      setHistory(prev => [...prev, <div><span className="text-[#a6e3a1]">kem@arch</span>:<span className="text-[#89b4fa] font-bold">{cwd}</span>$</div>]);
       return;
     }
 
-    const promptLine = <div key={history.length}><span className="text-[#a6e3a1]">kem@arch</span><span className="text-white">:$</span> {trimmedCmd}</div>;
-    const lowerCmd = trimmedCmd.toLowerCase();
+    setCmdHistory(prev => [...prev, fullCmd]);
+    const args = fullCmd.split(' ');
+    const cmd = args[0].toLowerCase();
+    const prompt = <div><span className="text-[#a6e3a1]">kem@arch</span>:<span className="text-[#89b4fa] font-bold">{cwd}</span>$ {fullCmd}</div>;
+    let output: React.ReactNode = null;
 
-    // Özel komutlar (Tam ekran animasyonlar)
-    if (lowerCmd === 'peaclock') {
-      setHistory(prev => [...prev, promptLine]);
-      setActiveProcess('peaclock');
-      setInput('');
-      return;
-    }
-    if (lowerCmd === 'pipes.sh') {
-      setHistory(prev => [...prev, promptLine]);
-      setActiveProcess('pipes');
-      setInput('');
-      return;
-    }
-
-    let output: React.ReactNode;
-
-    // --- EASTER EGGS (Şakalı Komutlar) ---
-    if (lowerCmd.startsWith('sudo')) {
-      output = <div className="text-red-400 ml-4 my-2">kem is not in the sudoers file. This incident will be reported.</div>;
-    } else if (lowerCmd.includes('rm -rf /')) {
-      output = <div className="text-red-500 font-bold ml-4 my-2 animate-pulse">[KERNEL PANIC] Permission denied! Nice try, ama kendi portfolyomu silmeme izin veremem :)</div>;
-    } else {
-      
-      // Neofetch yazılırsa fastfetch'e yönlendiriyoruz
-      const switchCmd = lowerCmd === 'neofetch' ? 'fastfetch' : lowerCmd;
-
-      // --- NORMAL KOMUTLAR ---
-      switch (switchCmd) {
-        case 'help':
-          output = (
-            <div className="text-gray-300 ml-4 my-2">
-              Available commands:<br/>
-              <span className="text-[#89b4fa]">whoami</span>    - About me<br/>
-              <span className="text-[#89b4fa]">projects</span>  - List my open source projects<br/>
-              <span className="text-[#89b4fa]">fastfetch</span> - Display system information<br/>
-              <span className="text-[#89b4fa]">pipes.sh</span>  - Animated terminal pipes<br/>
-              <span className="text-[#89b4fa]">peaclock</span>  - ASCII digital clock<br/>
-              <span className="text-[#89b4fa]">clear</span>     - Clear the terminal screen
+    switch (cmd) {
+      case 'help':
+        output = (
+          <div className="grid grid-cols-2 gap-x-8 gap-y-1 ml-4 my-2 text-gray-400 text-xs">
+            <span><b className="text-[#89b4fa]">whoami</b>   : General user profile</span>
+            <span><b className="text-[#89b4fa]">projects</b> : List current projects</span>
+            <span><b className="text-[#89b4fa]">ls</b>       : List directory contents</span>
+            <span><b className="text-[#89b4fa]">cd [dir]</b> : Change directory</span>
+            <span><b className="text-[#89b4fa]">pwd</b>      : Print current path</span>
+            <span><b className="text-[#89b4fa]">cat [file]</b>: Read file content</span>
+            <span><b className="text-[#89b4fa]">fastfetch</b>: System overview</span>
+            <span><b className="text-[#89b4fa]">matrix</b>    : Run matrix effect</span>
+            <span><b className="text-[#89b4fa]">peaclock</b>  : Show ASCII clock</span>
+            <span><b className="text-[#89b4fa]">date</b>      : Show current date</span>
+            <span><b className="text-[#89b4fa]">history</b>   : View command history</span>
+            <span><b className="text-[#89b4fa]">exit</b>      : Close this terminal</span>
+            <span><b className="text-[#89b4fa]">reboot</b>    : Reload the OS</span>
+            <span><b className="text-[#89b4fa]">clear</b>     : Clear terminal screen</span>
+          </div>
+        );
+        break;
+      case 'whoami':
+        output = <div className="ml-4 text-gray-300">Kem. A student in Turkey specializing in Android modding and reverse engineering. Currently working with Flutter and Python.</div>;
+        break;
+      case 'projects':
+        output = <div className="ml-4">Active Projects: <span className="text-[#a6e3a1]">XBash</span>, <span className="text-[#a6e3a1]">ytxtract</span>, and <span className="text-[#a6e3a1]">MusicController</span>.</div>;
+        break;
+      case 'ls':
+        const items = fileSystem[cwd] || [];
+        output = <div className="flex gap-6 ml-4 my-1">{items.map(item => <span key={item} className={item.includes('.') ? "text-[#cba6f7]" : "text-[#89b4fa] font-bold"}>{item}</span>)}</div>;
+        break;
+      case 'cd':
+        const target = args[1];
+        if (!target || target === '~') setCwd('~');
+        else if (target === '..') setCwd('~');
+        else if (fileSystem[`${cwd}/${target}`]) setCwd(`${cwd}/${target}`);
+        else output = <div className="text-red-400 ml-4">bash: cd: {target}: No such directory found.</div>;
+        break;
+      case 'pwd':
+        output = <div className="ml-4 italic text-gray-500">/home/kem/{cwd.replace('~/', '')}</div>;
+        break;
+      case 'cat':
+        const file = args[1];
+        const path = file?.startsWith('~/') ? file : `${cwd}/${file}`;
+        if (fileContents[path]) output = <pre className="ml-4 my-2 text-gray-300 whitespace-pre-wrap font-mono text-xs border-l border-[#313244] pl-3">{fileContents[path]}</pre>;
+        else output = <div className="text-red-400 ml-4">cat: {file || 'file'}: No such file in this directory.</div>;
+        break;
+      case 'fastfetch':
+      case 'neofetch':
+        output = (
+          <div className="flex gap-6 ml-4 my-4 font-bold text-[10px] leading-tight">
+            <pre className="text-[#89b4fa]">{`      /\\
+     /  \\
+    /    \\
+   /      \\
+  /   ,,   \\
+ /   |  |   \\
+/_-''    ''-_\\`}</pre>
+            <div className="text-gray-300">
+              <div className="text-[#89b4fa] mb-1">kem@arch_portfolio</div>
+              <div className="text-gray-600">------------------</div>
+              <div><span className="text-[#cba6f7]">OS</span>: Arch Linux x86_64</div>
+              <div><span className="text-[#cba6f7]">Host</span>: iwishkem.com.tr</div>
+              <div><span className="text-[#cba6f7]">Kernel</span>: 6.7.2-kem-os</div>
+              <div><span className="text-[#cba6f7]">Shell</span>: zsh 5.9</div>
+              <div><span className="text-[#cba6f7]">WM</span>: Custom React WM</div>
             </div>
-          );
-          break;
-        case 'whoami':
-          output = <div className="text-gray-300 ml-4 my-2">Hello! I'm Kem. A student, developer, and Android modifier.</div>;
-          break;
-        case 'projects':
-          output = (
-            <div className="text-gray-300 ml-4 my-2">
-              <span className="text-[#a6e3a1] font-bold">XBash</span> - Bash image uploader<br/>
-              <span className="text-[#a6e3a1] font-bold">ytxtract</span> - Python media downloader toolkit
-            </div>
-          );
-          break;
-        case 'fastfetch':
-          output = (
-            <div className="flex gap-6 my-4 text-sm font-mono">
-              <pre className="text-[#89b4fa] font-bold leading-tight select-none">
-{`       /\\
-      /  \\
-     /    \\
-    /      \\
-   /   ,,   \\
-  /   |  |   \\
- /_-''    ''-_\\`}
-              </pre>
-              <div className="flex flex-col text-gray-300">
-                <div><span className="text-[#89b4fa] font-bold">kem</span>@<span className="text-[#89b4fa] font-bold">arch</span></div>
-                <div className="text-gray-500">-------------------</div>
-                <div><span className="text-[#cba6f7] font-bold">OS</span>: Arch Linux x86_64</div>
-                <div><span className="text-[#cba6f7] font-bold">Host</span>: Custom Portfolio Web</div>
-                <div><span className="text-[#cba6f7] font-bold">Shell</span>: zsh 5.9</div>
-                <div><span className="text-[#cba6f7] font-bold">WM</span>: React-RND</div>
-              </div>
-            </div>
-          );
-          break;
-        case 'clear':
-          setHistory([]);
-          setInput('');
-          return;
-        default:
-          output = <div className="text-red-400 ml-4 my-2">Command not found: {trimmedCmd}</div>;
-      }
+          </div>
+        );
+        break;
+      case 'matrix': setActiveProcess('matrix'); break;
+      case 'peaclock': setActiveProcess('peaclock'); break;
+      case 'jumpscare': setActiveProcess('jumpscare'); break;
+      case 'date': output = <div className="ml-4">{new Date().toString()}</div>; break;
+      case 'history': output = <div className="ml-4 text-gray-500 whitespace-pre">{cmdHistory.join('\n')}</div>; break;
+      case 'exit': if (onExit) onExit(); return;
+      case 'reboot': window.location.reload(); return;
+      case 'clear': setHistory([]); setInput(''); return;
+      default:
+        output = <div className="text-red-400 ml-4">bash: {cmd}: command not found. Try 'help'.</div>;
     }
 
-    setHistory([...history, promptLine, <div key={history.length + 1}>{output}</div>]);
+    setHistory(prev => [...prev, prompt, output]);
     setInput('');
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleCommand(input);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      if (cmdHistory.length > 0) {
-        const newIndex = historyIndex === -1 ? cmdHistory.length - 1 : Math.max(0, historyIndex - 1);
-        setHistoryIndex(newIndex);
-        setInput(cmdHistory[newIndex]);
-      }
-    } else if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      if (historyIndex !== -1) {
-        const newIndex = historyIndex + 1;
-        if (newIndex >= cmdHistory.length) {
-          setHistoryIndex(-1);
-          setInput('');
-        } else {
-          setHistoryIndex(newIndex);
-          setInput(cmdHistory[newIndex]);
-        }
-      }
-    }
-  };
-
-  if (activeProcess === 'peaclock') return <div className="h-full w-full bg-[#1e1e2e] flex"><PeaclockProcess /></div>;
-  if (activeProcess === 'pipes') return <div className="h-full w-full bg-[#1e1e2e] overflow-hidden flex"><PipesProcess /></div>;
+  if (activeProcess === 'matrix') return <div className="h-full w-full bg-black"><MatrixProcess /></div>;
+  if (activeProcess === 'peaclock') return <div className="h-full w-full"><PeaclockProcess /></div>;
+  if (activeProcess === 'jumpscare') return <div className="h-full w-full"><JumpscareProcess /></div>;
 
   return (
-    <div 
-      className="flex-1 overflow-auto p-4 flex flex-col cursor-text w-full h-full" 
-      onClick={() => inputRef.current?.focus()}
-    >
-      {history.map((item, index) => <div key={index}>{item}</div>)}
-      <div className="flex items-center mt-1">
-        <span className="text-[#a6e3a1]">kem@arch</span><span className="text-white mr-2">:$</span>
-        <input
-          ref={inputRef}
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className="flex-1 bg-transparent outline-none text-white font-inherit"
+    <div className="flex-1 overflow-auto p-4 flex flex-col cursor-text font-mono text-sm h-full scrollbar-thin scrollbar-thumb-[#313244]" onClick={() => inputRef.current?.focus()}>
+      {history.map((h, i) => <div key={i}>{h}</div>)}
+      <form onSubmit={handleCommand} className="flex items-center">
+        <span className="text-[#a6e3a1]">kem@arch</span>:<span className="text-[#89b4fa] font-bold">{cwd}</span>$
+        <input 
+          ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
+          className="bg-transparent outline-none flex-1 ml-2 text-white caret-[#cba6f7]" 
           autoFocus autoComplete="off" spellCheck="false"
         />
-      </div>
-      <div ref={bottomRef} />
+      </form>
+      <div ref={bottomRef} className="h-2" />
     </div>
   );
 }

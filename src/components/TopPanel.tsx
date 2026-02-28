@@ -1,102 +1,44 @@
-import { useState, useRef, useEffect } from 'react';
-import { Wifi, Battery, Terminal, User, FolderGit2, Power } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Wifi, Battery, BatteryCharging, Volume2, Volume1, VolumeX, Cpu, Terminal, Zap } from 'lucide-react';
 
-// App.tsx'ten gelecek olan pencere açma komutlarını tanımlıyoruz
-interface TopPanelProps {
-  openTerminal: () => void;
-  openSingleWindow: (id: string, title: string, content: React.ReactNode) => void;
-}
+export type ThemeType = { id: string; panelClass: string; moduleClass: string; btnClass: string; icon1: string; icon2: string; icon3: string; textHover: string; clockClass: string; };
 
-export default function TopPanel({ openTerminal, openSingleWindow }: TopPanelProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const time = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+interface TopPanelProps { openTerminal: () => void; openSingleWindow: (id: string, title: string, content: React.ReactNode) => void; activeWorkspace: number; setActiveWorkspace: (ws: number) => void; theme: ThemeType; }
 
-  // Menü açıkken dışarı bir yere tıklanırsa menüyü otomatik kapat
+export default function TopPanel({ openTerminal, activeWorkspace, setActiveWorkspace, theme }: TopPanelProps) {
+  const [timeStr, setTimeStr] = useState("");
+  const [cpuUsage, setCpuUsage] = useState(3);
+  const [wifiSpeed, setWifiSpeed] = useState(130);
+  const [battery, setBattery] = useState(85);
+  const [isCharging, setIsCharging] = useState(false);
+  const [volume, setVolume] = useState(66);
+  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false);
-      }
-    };
-    if (isMenuOpen) document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isMenuOpen]);
+    const updateTime = () => setTimeStr(new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
+    updateTime(); const timer = setInterval(updateTime, 1000); return () => clearInterval(timer);
+  }, []);
 
-  // Butona tıklanınca önce eylemi yap, sonra menüyü kapat
-  const handleMenuAction = (action: () => void) => {
-    action();
-    setIsMenuOpen(false);
-  };
-
+  const VolumeIcon = volume === 0 ? VolumeX : volume < 50 ? Volume1 : Volume2;
+  
   return (
-    <div className="relative z-[100]">
-      {/* Üst Bar */}
-      <div className="h-8 w-full flex items-center justify-between px-4 text-sm font-medium text-gray-200" 
-           style={{ backgroundColor: 'rgba(24, 24, 37, 0.7)', backdropFilter: 'blur(10px)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div className="flex items-center gap-4">
-          <span 
-            className="text-[#89b4fa] font-bold cursor-pointer hover:text-white transition-colors select-none flex items-center gap-2"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            <div className="w-4 h-4 rounded-full bg-[#89b4fa] flex items-center justify-center text-[#11111b] text-[10px] font-black">A</div>
-            Arch Portfolio
-          </span>
-        </div>
-        <div className="flex items-center gap-4">
-          <Wifi size={16} />
-          <Battery size={16} />
-          <span>{time}</span>
+    <div className={`flex items-center justify-between px-3 py-2 m-3 backdrop-blur-md border rounded-2xl shadow-xl text-xs font-mono font-bold select-none z-50 transition-all ${theme.panelClass}`}>
+      <div className="flex items-center gap-3">
+        <div className={`flex items-center justify-center w-8 h-8 rounded-xl cursor-pointer transition-all ${theme.btnClass}`} onClick={openTerminal} title="Open Terminal"><Terminal size={18} /></div>
+        <div className={`flex items-center gap-2 px-3 py-2 rounded-xl ${theme.moduleClass}`}>
+          {[1, 2, 3, 4].map((ws) => (
+            <span key={ws} onClick={() => setActiveWorkspace(ws)} className={`w-2.5 h-2.5 rounded-full cursor-pointer transition-all ${activeWorkspace === ws ? 'bg-white scale-125' : 'bg-gray-600 hover:bg-gray-400'}`}></span>
+          ))}
         </div>
       </div>
-
-      {/* Başlat / Arch Menüsü */}
-      {isMenuOpen && (
-        <div 
-          ref={menuRef}
-          className="absolute top-8 left-2 w-64 bg-[#181825]/95 backdrop-blur-md border border-[#313244] rounded-b-lg shadow-2xl py-2 flex flex-col text-sm text-gray-200"
-        >
-          {/* Menü Öğeleri */}
-          <div 
-            className="flex items-center gap-3 px-4 py-2 hover:bg-[#313244] cursor-pointer transition-colors"
-            onClick={() => handleMenuAction(openTerminal)}
-          >
-            <Terminal size={16} className="text-[#89b4fa]" />
-            <span>Yeni Terminal</span>
-          </div>
-
-          <div 
-            className="flex items-center gap-3 px-4 py-2 hover:bg-[#313244] cursor-pointer transition-colors"
-            onClick={() => handleMenuAction(() => openSingleWindow('about', 'Hakkımda', <div className="p-4">Kem. Öğrenci, geliştirici ve Android modlayıcısı.</div>))}
-          >
-            <User size={16} className="text-[#f9e2af]" />
-            <span>Hakkımda</span>
-          </div>
-
-          <div 
-            className="flex items-center gap-3 px-4 py-2 hover:bg-[#313244] cursor-pointer transition-colors"
-            onClick={() => handleMenuAction(() => openSingleWindow('projects', 'Projelerim', 
-              <div className="p-4 flex flex-col gap-4">
-                <div><strong className="text-[#a6e3a1]">XBash:</strong> ShareX benzeri bash tabanlı resim yükleyici.</div>
-                <div><strong className="text-[#a6e3a1]">ytxtract:</strong> Python tabanlı YouTube medya indirme aracı.</div>
-              </div>
-            ))}
-          >
-            <FolderGit2 size={16} className="text-[#a6e3a1]" />
-            <span>Projelerim</span>
-          </div>
-          
-          <div className="h-px bg-[#313244] my-2 mx-2" /> {/* Ayırıcı Çizgi */}
-          
-          <div 
-            className="flex items-center gap-3 px-4 py-2 hover:bg-red-500/20 hover:text-red-400 cursor-pointer transition-colors"
-            onClick={() => alert("Sistem kapatılıyor... (Tabii ki şaka!)")}
-          >
-            <Power size={16} />
-            <span>Kapat</span>
-          </div>
-        </div>
-      )}
+      <div className={`hidden md:flex items-center px-5 py-2 rounded-xl ${theme.moduleClass} ${theme.icon3}`}>~ / workspace_{activeWorkspace}</div>
+      <div className="flex items-center gap-2">
+        <div className={`hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl ${theme.moduleClass} ${theme.icon1}`}><Cpu size={14} /><span>{cpuUsage}%</span></div>
+        <div className={`flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer ${theme.moduleClass} ${theme.icon1}`} onClick={() => setShowVolumeSlider(!showVolumeSlider)}><VolumeIcon size={14} /><span>{volume}%</span></div>
+        <div className={`flex items-center gap-2 px-3 py-2 rounded-xl ${theme.moduleClass} ${theme.icon1}`}><Wifi size={14} /><span>{wifiSpeed} Mb/s</span></div>
+        <div className={`flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer ${theme.moduleClass} ${isCharging ? 'text-green-400' : theme.icon2}`} onClick={() => setIsCharging(!isCharging)}>{isCharging ? <BatteryCharging size={14} /> : <Battery size={14} />}<span>{battery}%</span></div>
+        <div className={`flex items-center px-4 py-2 rounded-xl font-black ${theme.clockClass} shadow-lg`}>{timeStr}</div>
+      </div>
     </div>
   );
 }
