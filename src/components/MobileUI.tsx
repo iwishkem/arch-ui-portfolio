@@ -137,7 +137,7 @@ function HomeSlider({ onHomeClick }: HomeSliderProps) {
       className="h-8 flex-shrink-0 flex items-center justify-center" 
       onClick={triggerHome} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
     >
-      <div className={`w-32 h-1.5 bg-white/40 rounded-full transition-all duration-200 ease-out hover:bg-white/80 active:scale-95 cursor-pointer ${isInteracting ? 'scale-y-125 bg-white/60' : ''}`} />
+      <div className={`w-32 h-1.5 rounded-full transition-all duration-200 ease-out hover:bg-white/80 active:scale-95 cursor-pointer bg-white/40 [forced-color-adjust:none] ${isInteracting ? 'scale-y-125 bg-white/60' : ''}`} />
     </div>
   );
 }
