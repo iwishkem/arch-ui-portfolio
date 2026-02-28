@@ -25,9 +25,9 @@ export default function Window({ id, title, children, onClose, onFocus, isFocuse
       minHeight={200}
       bounds="parent"
       onDragStart={onFocus}
-      className={`absolute flex flex-col bg-[#1e1e2e]/95 backdrop-blur-xl border rounded-xl shadow-2xl overflow-hidden ${
-        isFocused ? 'z-50 border-[#89b4fa]' : 'z-10 border-[#313244] opacity-90'
-      }`}
+      className={`absolute flex flex-col bg-[#1e1e2e]/70 backdrop-blur-xl border rounded-xl shadow-2xl overflow-hidden 
+        ${isFocused ? 'z-50 border-[#89b4fa]' : 'z-10 border-[#313244]'}
+`}
     >
       <div className={`flex items-center justify-between px-3 py-2 select-none shrink-0 ${isFocused ? 'bg-[#313244]' : 'bg-[#181825]'}`} onMouseDown={onFocus}>
         <span className="text-[13px] font-bold font-mono text-gray-300 truncate mr-4">{title}</span>
