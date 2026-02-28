@@ -30,7 +30,7 @@ export default function Window({ id, title, children, onClose, onFocus, isFocuse
       }`}
     >
       <div className={`flex items-center justify-between px-3 py-2 select-none shrink-0 ${isFocused ? 'bg-[#313244]' : 'bg-[#181825]'}`} onMouseDown={onFocus}>
-        <span className="text-[10px] font-bold font-mono text-gray-300 truncate mr-4">{title}</span>
+        <span className="text-[13px] font-bold font-mono text-gray-300 truncate mr-4">{title}</span>
         <div className="flex items-center gap-1.5 shrink-0">
           <button onClick={onClose} className="p-1 hover:bg-[#f38ba8] hover:text-[#11111b] rounded-md text-gray-500 transition-all"><X size={14} /></button>
         </div>

@@ -35,7 +35,7 @@ export default function FileExplorer({ openWindow }: FileExplorerProps) {
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#11111b] text-gray-300 select-none">
+    <div className="flex flex-col h-full w-full bg-transparent text-gray-300 select-none">
       <div className="flex items-center justify-between p-3 bg-[#1e1e2e] border-b border-[#313244]">
         <div className="flex items-center gap-2">
           <button onClick={() => setCurrentPath('root')} className="p-1.5 hover:bg-[#313244] rounded-lg"><ChevronLeft size={18} /></button>
