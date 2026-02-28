@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Terminal, User, Folder as FolderIcon, Settings, Battery, BatteryCharging, Wifi, Bluetooth, Flashlight, Send, Moon, Plane, Sun } from 'lucide-react';
+import { Terminal, User, Folder as FolderIcon, Settings, Battery, BatteryCharging, Wifi, Bluetooth, Flashlight, Send, Moon, Plane, Sun, Search } from 'lucide-react';
 import TerminalApp from './TerminalApp';
 import FileExplorer from './FileExplorer';
 import type { ThemeType } from './TopPanel';
@@ -21,11 +21,11 @@ function QuickSettingsPanel({ isOpen, onClose, theme }: { isOpen: boolean, onClo
   const [brightness, setBrightness] = useState(80);
 
   return (
-    <div 
+    <div
       className={`absolute inset-0 z-20 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       onClick={onClose}
     >
-      <div 
+      <div
         className={`absolute top-0 left-3 right-3 bg-[#24273a]/80 backdrop-blur-xl rounded-b-3xl shadow-2xl transition-transform duration-300 ease-out ${isOpen ? 'translate-y-0' : '-translate-y-full'}`}
         onClick={e => e.stopPropagation()}
         style={{ paddingTop: `calc(1.75rem + env(safe-area-inset-top))` }}
@@ -82,7 +82,7 @@ function StatusBar({ onToggleQuickSettings }: { onToggleQuickSettings: () => voi
   };
 
   return (
-    <div 
+    <div
       className="absolute top-0 left-0 right-0 px-3 flex items-center justify-between text-white text-xs font-mono font-bold bg-black/20 backdrop-blur-sm z-30"
       style={{
         height: 'calc(1.75rem + env(safe-area-inset-top))',
@@ -133,8 +133,8 @@ function HomeSlider({ onHomeClick }: HomeSliderProps) {
   };
 
   return (
-    <div 
-      className="h-8 flex-shrink-0 flex items-center justify-center" 
+    <div
+      className="h-8 flex-shrink-0 flex items-center justify-center"
       onClick={triggerHome} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
     >
       <div className={`w-32 h-1.5 rounded-full transition-all duration-200 ease-out hover:bg-white/80 active:scale-95 cursor-pointer bg-white/40 [forced-color-adjust:none] ${isInteracting ? 'scale-y-125 bg-white/60' : ''}`} />
@@ -159,6 +159,7 @@ interface MobileUIProps {
 export default function MobileUI({ theme, openWindow, TweakToolContent, AboutMeContent }: MobileUIProps) {
   const [activeApp, setActiveApp] = useState<AppDefinition | null>(null);
   const [isQuickSettingsOpen, setIsQuickSettingsOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
   const toggleQuickSettings = () => {
     if (navigator.vibrate) navigator.vibrate(20);
@@ -184,7 +185,7 @@ export default function MobileUI({ theme, openWindow, TweakToolContent, AboutMeC
         <StatusBar onToggleQuickSettings={toggleQuickSettings} />
         <QuickSettingsPanel isOpen={isQuickSettingsOpen} onClose={toggleQuickSettings} theme={theme} />
         {/* Simple header for the app */}
-        <div 
+        <div
           className={`flex items-center justify-center p-3 bg-[#181825] border-b border-[#313244] ${theme.icon1}`}
           style={{ marginTop: 'calc(1.75rem + env(safe-area-inset-top))' }}>
           <h2 className="font-bold text-sm">{activeApp.title}</h2>
@@ -201,15 +202,16 @@ export default function MobileUI({ theme, openWindow, TweakToolContent, AboutMeC
 
   // Otherwise, show the App Drawer (Home Screen)
   return (
-    <div className="absolute inset-0 bg-cover bg-center flex flex-col" style={{ backgroundImage: `url("${theme.bg}")`}}>
+    <div className="absolute inset-0 bg-cover bg-center flex flex-col" style={{ backgroundImage: `url("${theme.bg}")` }}>
       <StatusBar onToggleQuickSettings={toggleQuickSettings} />
       <QuickSettingsPanel isOpen={isQuickSettingsOpen} onClose={toggleQuickSettings} theme={theme} />
       <div className={`flex-1 flex flex-col transition-transform duration-300 ${isQuickSettingsOpen ? 'scale-95 opacity-50 rounded-3xl overflow-hidden' : ''}`} style={{ paddingTop: 'calc(1.75rem + env(safe-area-inset-top))' }}>
         {/* Fake Search Bar */}
-        <div className="px-6 pt-4 pb-2">
-          <div className="bg-black/25 backdrop-blur-md rounded-full h-12 flex items-center px-5 text-gray-300/80 text-base">
-            Search...
-          </div>
+        <div className="px-6 pt-4 pb-2 flex items-center justify-center">
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder='Search…' className="bg-black/25 backdrop-blur-md rounded-full h-12 w-full flex items-center px-5 text-gray-300/80 text-base" />
+          <a href={`http://google.com/search?q=${search}`} target="_blank" rel="noopener noreferrer">
+            <Search size={20} className="absolute top-14 right-10 text-gray-300/80" />
+          </a>
         </div>
         {/* App Grid */}
         <div className="flex-1 overflow-y-auto px-4">
@@ -227,7 +229,7 @@ export default function MobileUI({ theme, openWindow, TweakToolContent, AboutMeC
         {/* Dock */}
         <div className="px-4" style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
           <div className="bg-black/25 backdrop-blur-md rounded-3xl">
-            <HomeSlider onHomeClick={() => {}} />
+            <HomeSlider onHomeClick={() => { }} />
           </div>
         </div>
       </div>
