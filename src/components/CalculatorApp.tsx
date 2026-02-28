@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Delete } from 'lucide-react';
 
 export default function CalculatorApp() {
@@ -6,9 +6,14 @@ export default function CalculatorApp() {
   const [history, setHistory] = useState('');
 
   const calculate = () => {
+    if (!display) return;
     try {
       // Using a safe Function constructor for the calculation logic
       const result = new Function('return ' + display.replace(/×/g, '*').replace(/÷/g, '/').replace(/\^/g, '**'))();
+      if (result === undefined || result === null || result === Infinity || Number.isNaN(result)) {
+        setDisplay('Error');
+        return;
+      }
       setHistory(display + ' =');
       setDisplay(String(Number(result.toFixed(6))));
     } catch { setDisplay('Error'); }
