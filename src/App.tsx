@@ -116,7 +116,7 @@ export default function App() {
             <div className="flex flex-col items-center justify-center gap-1 w-full h-full cursor-pointer hover:bg-white/10 rounded-xl transition-colors group" onDoubleClick={() => {
               if(id === 'terminal') openWindow('term', 'kem@arch: ~', <TerminalApp onExit={() => closeWindow('term')} />);
               if(id === 'settings') openWindow('settings', 'Tweak Tool', TweakToolContent);
-              if(id === 'calculator') openWindow('calculator', 'Scientific Calculator', <CalculatorApp />);
+              if(id === 'calculator') openWindow('calculator', 'Scientific Calculator', <div className="origin-top-left scale-90 w-[111.11%] h-[111.11%]"><CalculatorApp /></div>);
               if(id === 'files') openWindow('files', 'File Explorer', <FileExplorer openWindow={openWindow} />);
               if(id === 'about') openWindow('about', 'About Me', <div className="p-6 text-gray-300 font-mono text-xs leading-relaxed overflow-auto h-full">
                 <p className="text-[#a6e3a1] mb-2 font-bold underline"># Profile: Kem</p>
@@ -139,7 +139,7 @@ export default function App() {
 
         {windows.filter(win => win.workspaceId === activeWorkspace).map(win => (
           <Window key={win.id} id={win.id} title={win.title} isFocused={focusedId === win.id} onClose={() => closeWindow(win.id)} onFocus={() => setFocusedId(win.id)}
-          defaultSize={win.id === 'calculator' ? { width: 360, height: 540 } : { width: 600, height: 400 }}>
+          defaultSize={win.id === 'calculator' ? { width: 360, height: 500 } : { width: 600, height: 400 }}>
             {win.id === 'settings' ? TweakToolContent : win.content}
           </Window>
         ))}

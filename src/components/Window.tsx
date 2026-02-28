@@ -12,7 +12,7 @@ interface WindowProps {
   defaultSize?: { width: number; height: number };
 }
 
-export default function Window({ title, children, onClose, onFocus, isFocused, defaultSize }: WindowProps) {
+export default function Window({ id, title, children, onClose, onFocus, isFocused, defaultSize }: WindowProps) {
   return (
     <Rnd
       default={{
@@ -25,9 +25,9 @@ export default function Window({ title, children, onClose, onFocus, isFocused, d
       minHeight={200}
       bounds="parent"
       onDragStart={onFocus}
-      className={`absolute flex flex-col bg-[#1e1e2e]/95 backdrop-blur-xl border rounded-xl overflow-hidden shadow-2xl ${
+      className={`absolute flex flex-col bg-[#1e1e2e]/95 backdrop-blur-xl border rounded-xl shadow-2xl ${
         isFocused ? 'z-50 border-[#89b4fa]' : 'z-10 border-[#313244] opacity-90'
-      }`}
+      } ${id === 'calculator' ? '' : 'overflow-hidden'}`}
     >
       <div className={`flex items-center justify-between px-3 py-2 select-none shrink-0 ${isFocused ? 'bg-[#313244]' : 'bg-[#181825]'}`} onMouseDown={onFocus}>
         <span className="text-[10px] font-bold font-mono text-gray-300 truncate mr-4">{title}</span>
@@ -35,7 +35,7 @@ export default function Window({ title, children, onClose, onFocus, isFocused, d
           <button onClick={onClose} className="p-1 hover:bg-[#f38ba8] hover:text-[#11111b] rounded-md text-gray-500 transition-all"><X size={14} /></button>
         </div>
       </div>
-      <div className="flex-1 w-full h-full overflow-hidden relative bg-[#11111b]/30">
+      <div className={`flex-1 w-full h-full relative bg-[#11111b]/30 ${id === 'calculator' ? '' : 'overflow-hidden'}`}>
         {children}
       </div>
     </Rnd>
